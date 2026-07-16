@@ -1,25 +1,101 @@
 <!DOCTYPE html>
-<html>
-<head><script src="https://cdn.tailwindcss.com"></script></head>
-<body class="p-4 bg-gray-100">
-  <input type="text" id="m" placeholder="เดือน">
-  <input type="text" id="p" placeholder="งวด">
-  <input type="number" id="b" placeholder="ซื้อ">
-  <input type="number" id="w" placeholder="ถูก">
-  <button onclick="save()">บันทึก</button>
-  <table id="t" class="w-full"></table>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>บันทึกการซื้อหวย</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-4">
+    <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
+        <header class="bg-indigo-600 p-6 text-white">
+            <h1 class="text-2xl font-bold">บันทึกซื้อหวย</h1>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4 text-sm">
+                <p>รวมซื้อ: <span id="totalBuy" class="font-bold">0</span></p>
+                <p>รวมถูก: <span id="totalWin" class="font-bold">0</span></p>
+                <p>ยอดสุทธิ: <span id="totalNet" class="font-bold">0</span></p>
+            </div>
+        </header>
 
-  <script>
-    function save() {
-      const data = { month: document.getElementById('m').value, period: document.getElementById('p').value, b: document.getElementById('b').value, w: document.getElementById('w').value };
-      google.script.run.withSuccessHandler(load).addEntry(data);
-    }
-    function load() {
-      google.script.run.withSuccessHandler(res => {
-        document.getElementById('t').innerHTML = res.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join('');
-      }).getData();
-    }
-    load();
-  </script>
+        <div class="p-6">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="text-gray-600 uppercase text-xs border-b">
+                        <th class="py-3">เดือน</th>
+                        <th class="py-3">งวด</th>
+                        <th class="py-3">ซื้อ</th>
+                        <th class="py-3">ถูก</th>
+                    </tr>
+                </thead>
+                <tbody id="lotteryTableBody">
+                    <tr><td colspan="4" class="text-center py-4">กำลังโหลดข้อมูล...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="p-6 bg-gray-50 border-t">
+            <h2 class="font-bold mb-4">เพิ่มรายการ</h2>
+            <div class="grid grid-cols-2 md:grid-cols-6 gap-2">
+                <input type="text" id="monthInput" placeholder="เดือน" class="p-2 border rounded">
+                <input type="text" id="periodInput" placeholder="งวด" class="p-2 border rounded">
+                <input type="number" id="buyInput" placeholder="ยอดซื้อ" class="p-2 border rounded">
+                <input type="number" id="winInput" placeholder="ยอดถูก" class="p-2 border rounded">
+                <button onclick="saveEntry()" class="bg-indigo-600 text-white p-2 rounded hover:bg-indigo-700 col-span-2">บันทึกข้อมูล</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ฟังก์ชันโหลดข้อมูล (เรียกใช้ Code.gs)
+        function loadTable() {
+            google.script.run.withSuccessHandler(render).getData();
+        }
+
+        // แสดงผลตาราง
+        function render(data) {
+            const body = document.getElementById('lotteryTableBody');
+            body.innerHTML = '';
+            let tBuy = 0, tWin = 0;
+            
+            // ข้ามหัวตาราง (index 0)
+            for(let i = 1; i < data.length; i++) {
+                let row = data[i];
+                tBuy += Number(row[2] || 0);
+                tWin += Number(row[3] || 0);
+                body.innerHTML += `
+                    <tr class="border-b">
+                        <td class="py-3">${row[0]}</td>
+                        <td class="py-3">${row[1]}</td>
+                        <td class="py-3">${row[2]}</td>
+                        <td class="py-3 text-green-600">${row[3]}</td>
+                    </tr>
+                `;
+            }
+            document.getElementById('totalBuy').innerText = tBuy;
+            document.getElementById('totalWin').innerText = tWin;
+            document.getElementById('totalNet').innerText = (tWin - tBuy);
+        }
+
+        // ฟังก์ชันบันทึกข้อมูล
+        function saveEntry() {
+            const data = {
+                month: document.getElementById('monthInput').value,
+                period: document.getElementById('periodInput').value,
+                buy: document.getElementById('buyInput').value,
+                win: document.getElementById('winInput').value
+            };
+            
+            if(data.month && data.period) {
+                google.script.run.withSuccessHandler(() => {
+                    alert("บันทึกสำเร็จ!");
+                    loadTable();
+                }).addEntry(data);
+            } else {
+                alert("กรุณากรอกข้อมูลให้ครบ");
+            }
+        }
+
+        loadTable(); // เรียกโหลดครั้งแรก
+    </script>
 </body>
 </html>
