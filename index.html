@@ -2,54 +2,63 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>บันทึกซื้อหวย</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 p-4">
-    <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
-        <header class="bg-indigo-600 p-6 text-white text-center">
-            <h1 class="text-2xl font-bold">บันทึกซื้อหวย</h1>
-        </header>
+    <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-6">
+        <h1 class="text-2xl font-bold mb-4">บันทึกซื้อหวย</h1>
+        
+        <table class="w-full border-collapse mb-6">
+            <thead><tr class="border-b"><th class="py-2">เดือน</th><th>งวด</th><th>ซื้อ</th><th>ถูก</th></tr></thead>
+            <tbody id="lotteryTableBody"></tbody>
+        </table>
 
-        <div class="p-6">
-            <div class="grid grid-cols-2 md:grid-cols-5 gap-2">
-                <input type="text" id="monthInput" placeholder="เดือน" class="p-2 border rounded">
-                <input type="text" id="periodInput" placeholder="งวด" class="p-2 border rounded">
-                <input type="number" id="buyInput" placeholder="ยอดซื้อ" class="p-2 border rounded">
-                <input type="number" id="winInput" placeholder="ยอดถูก" class="p-2 border rounded">
-                <button onclick="saveToSheets()" class="bg-indigo-600 text-white p-2 rounded hover:bg-indigo-700">บันทึก</button>
-            </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <input type="text" id="m" placeholder="เดือน" class="border p-2 rounded">
+            <input type="text" id="p" placeholder="งวด" class="border p-2 rounded">
+            <input type="number" id="b" placeholder="ซื้อ" class="border p-2 rounded">
+            <input type="number" id="w" placeholder="ถูก" class="border p-2 rounded">
+            <button onclick="saveData()" class="bg-indigo-600 text-white p-2 rounded col-span-2 md:col-span-4">บันทึกข้อมูล</button>
         </div>
     </div>
 
     <script>
-        // URL ของคุณ
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzgzyoiM_bKZrdAK_mEGvUAvWQbXexcys3ZuL0kg8QwmFpG6vAYGkr0US3h1UDWLUx4/exec';
+        const SCRIPT_URL = https://script.google.com/macros/s/AKfycbzgzyoiM_bKZrdAK_mEGvUAvWQbXexcys3ZuL0kg8QwmFpG6vAYGkr0US3h1UDWLUx4/exec;
 
-        function saveToSheets() {
-            const data = {
-                month: document.getElementById('monthInput').value,
-                period: document.getElementById('periodInput').value,
-                buy: document.getElementById('buyInput').value,
-                win: document.getElementById('winInput').value
+        // ฟังก์ชันดึงข้อมูลมาแสดง
+        async function loadData() {
+            const res = await fetch(SCRIPT_URL);
+            const data = await res.json();
+            const body = document.getElementById('lotteryTableBody');
+            body.innerHTML = data.map(item => `
+                <tr class="border-b text-center">
+                    <td class="py-2">${item.month}</td>
+                    <td>${item.period}</td>
+                    <td>${item.b}</td>
+                    <td class="text-green-600">${item.w}</td>
+                </tr>
+            `).join('');
+        }
+
+        // ฟังก์ชันบันทึกข้อมูล
+        async function saveData() {
+            const payload = {
+                month: document.getElementById('m').value,
+                period: document.getElementById('p').value,
+                b: parseInt(document.getElementById('b').value),
+                w: parseInt(document.getElementById('w').value)
             };
 
-            if(!data.month || !data.period) {
-                alert("กรุณากรอกเดือนและงวด");
-                return;
-            }
-
-            fetch(SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            }).then(() => {
-                alert("บันทึกสำเร็จ!");
-                location.reload();
-            }).catch(err => alert("เกิดข้อผิดพลาด: " + err));
+            await fetch(SCRIPT_URL, {
+                method: "POST",
+                body: JSON.stringify(payload)
+            });
+            alert("บันทึกแล้ว!");
+            loadData();
         }
+
+        loadData();
     </script>
 </body>
 </html>
