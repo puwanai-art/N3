@@ -2,54 +2,26 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>บันทึกการซื้อหวย</title>
+    <title>บันทึกซื้อหวย</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 p-4">
-    <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
-        <header class="bg-indigo-600 p-6 text-white">
-            <h1 class="text-2xl font-bold">บันทึกซื้อหวย</h1>
-            <div id="summary" class="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4 text-sm">
-                <p>รวมซื้อ: <span id="totalBuy" class="font-bold">0</span></p>
-                <p>รวมถูก: <span id="totalWin" class="font-bold">0</span></p>
-                <p>ยอดสุทธิ: <span id="totalNet" class="font-bold">0</span></p>
-            </div>
-        </header>
-
-        <div class="p-6">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="text-gray-600 uppercase text-xs border-b">
-                        <th class="py-3">เดือน</th>
-                        <th class="py-3">งวด</th>
-                        <th class="py-3">ซื้อ</th>
-                        <th class="py-3">ถูก</th>
-                    </tr>
-                </thead>
-                <tbody id="lotteryTableBody">
-                    <tr><td colspan="4" class="text-center py-4">โปรดตรวจสอบการเชื่อมต่อฐานข้อมูล...</td></tr>
-                </tbody>
-            </table>
-        </div>
-
-        <div class="p-6 bg-gray-50 border-t">
-            <h2 class="font-bold mb-4">เพิ่มรายการใหม่</h2>
-            <div class="grid grid-cols-2 md:grid-cols-5 gap-2">
-                <input type="text" id="monthInput" placeholder="เดือน" class="p-2 border rounded">
-                <input type="text" id="periodInput" placeholder="งวด" class="p-2 border rounded">
-                <input type="number" id="buyInput" placeholder="ยอดซื้อ" class="p-2 border rounded">
-                <input type="number" id="winInput" placeholder="ยอดถูก" class="p-2 border rounded">
-                <button onclick="addEntry()" class="bg-indigo-600 text-white p-2 rounded hover:bg-indigo-700">บันทึก</button>
-            </div>
+    <div class="max-w-4xl mx-auto bg-white p-6 rounded shadow">
+        <h1 class="text-2xl font-bold mb-4">บันทึกซื้อหวย</h1>
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-2">
+            <input type="text" id="monthInput" placeholder="เดือน" class="border p-2 rounded">
+            <input type="text" id="periodInput" placeholder="งวด" class="border p-2 rounded">
+            <input type="number" id="buyInput" placeholder="ยอดซื้อ" class="border p-2 rounded">
+            <input type="number" id="winInput" placeholder="ยอดถูก" class="border p-2 rounded">
+            <button onclick="saveData()" class="bg-indigo-600 text-white p-2 rounded">บันทึก</button>
         </div>
     </div>
 
     <script>
-        // *** สำคัญ: ใส่ Web App URL ของคุณที่นี่ ***
-        const SCRIPT_URL = 'ใส่_Web_App_URL_ของคุณ_ที่นี่';
+        // *** ใส่ URL Web App ของคุณตรงนี้ (ที่ลงท้ายด้วย /exec) ***
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxC8FWS5vAYRJXowxrFuR_Epqfi0PmLV1eQSGtgaFqKkVedJYUaaE5i4MO6sOlXJiXnvg/exec';
 
-        function addEntry() {
+        function saveData() {
             const data = {
                 month: document.getElementById('monthInput').value,
                 period: document.getElementById('periodInput').value,
@@ -57,19 +29,15 @@
                 win: document.getElementById('winInput').value
             };
 
-            if (data.month && data.period) {
-                fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                }).then(() => {
-                    alert("บันทึกสำเร็จ! ข้อมูลจะถูกส่งไปที่ Google Sheets");
-                    location.reload(); 
-                }).catch(err => alert("เกิดข้อผิดพลาด: " + err));
-            } else {
-                alert("กรุณากรอกเดือนและงวดให้ครบถ้วน");
-            }
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            }).then(() => {
+                alert("บันทึกข้อมูลเรียบร้อยแล้ว!");
+                document.querySelectorAll('input').forEach(i => i.value = '');
+            }).catch(e => alert("เกิดข้อผิดพลาด: " + e));
         }
     </script>
 </body>
