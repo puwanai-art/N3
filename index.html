@@ -3,13 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>บันทึกซื้อหวย</title>
+    <title>บันทึกการซื้อหวย</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 p-4">
     <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
-        <header class="bg-indigo-600 p-6 text-white text-center">
+        <header class="bg-indigo-600 p-6 text-white">
             <h1 class="text-2xl font-bold">บันทึกซื้อหวย</h1>
+            <div id="summary" class="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4 text-sm">
+                <p>รวมซื้อ: <span id="totalBuy" class="font-bold">0</span></p>
+                <p>รวมถูก: <span id="totalWin" class="font-bold">0</span></p>
+                <p>ยอดสุทธิ: <span id="totalNet" class="font-bold">0</span></p>
+            </div>
         </header>
 
         <div class="p-6">
@@ -23,7 +28,7 @@
                     </tr>
                 </thead>
                 <tbody id="lotteryTableBody">
-                    <tr><td colspan="4" class="text-center py-4">กำลังโหลดข้อมูล...</td></tr>
+                    <tr><td colspan="4" class="text-center py-4">โปรดตรวจสอบการเชื่อมต่อฐานข้อมูล...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -41,7 +46,7 @@
     </div>
 
     <script>
-        // *** ใส่ Web App URL ของคุณที่นี่ ***
+        // *** สำคัญ: ใส่ Web App URL ของคุณที่นี่ ***
         const SCRIPT_URL = 'ใส่_Web_App_URL_ของคุณ_ที่นี่';
 
         function addEntry() {
@@ -52,15 +57,19 @@
                 win: document.getElementById('winInput').value
             };
 
-            fetch(SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            }).then(() => {
-                alert("บันทึกสำเร็จ!");
-                location.reload(); // รีเฟรชหน้าเว็บเพื่อดึงข้อมูลใหม่
-            });
+            if (data.month && data.period) {
+                fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                }).then(() => {
+                    alert("บันทึกสำเร็จ! ข้อมูลจะถูกส่งไปที่ Google Sheets");
+                    location.reload(); 
+                }).catch(err => alert("เกิดข้อผิดพลาด: " + err));
+            } else {
+                alert("กรุณากรอกเดือนและงวดให้ครบถ้วน");
+            }
         }
     </script>
 </body>
