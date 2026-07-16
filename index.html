@@ -1,152 +1,25 @@
 <!DOCTYPE html>
-<html lang="th">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>บันทึกหวย</title>
+<html>
+<head><script src="https://cdn.tailwindcss.com"></script></head>
+<body class="p-4 bg-gray-100">
+  <input type="text" id="m" placeholder="เดือน">
+  <input type="text" id="p" placeholder="งวด">
+  <input type="number" id="b" placeholder="ซื้อ">
+  <input type="number" id="w" placeholder="ถูก">
+  <button onclick="save()">บันทึก</button>
+  <table id="t" class="w-full"></table>
 
-<script src="https://cdn.tailwindcss.com"></script>
-</head>
-
-<body class="bg-gray-100 p-4">
-
-<div class="max-w-4xl mx-auto bg-white p-6 rounded shadow">
-
-<h1 class="text-xl font-bold mb-4">บันทึกซื้อหวย</h1>
-
-<div class="grid grid-cols-3 gap-4 mb-4">
-<p>รวมซื้อ: <span id="totalBuy">0</span></p>
-<p>รวมถูก: <span id="totalWin">0</span></p>
-<p>สุทธิ: <span id="totalNet">0</span></p>
-</div>
-
-<table class="w-full border mb-4">
-<thead>
-<tr>
-<th>เดือน</th>
-<th>งวด</th>
-<th>ซื้อ</th>
-<th>ถูก</th>
-</tr>
-</thead>
-<tbody id="lotteryTableBody"></tbody>
-</table>
-
-<div class="grid grid-cols-2 md:grid-cols-5 gap-2">
-<input id="monthInput" placeholder="เดือน" class="border p-2">
-<input id="periodInput" placeholder="งวด" class="border p-2">
-<input id="buyInput" type="number" placeholder="ซื้อ" class="border p-2">
-<input id="winInput" type="number" placeholder="ถูก" class="border p-2">
-
-<button onclick="addEntry()" class="bg-blue-600 text-white p-2">
-บันทึก
-</button>
-</div>
-
-</div>
-
-<script>
-
-// 🔥 ใส่ URL ของคุณตรงนี้ (จากรูปคุณ)
-const API_URL = "https://script.google.com/macros/s/AKfycbzVpYqpjuWvxQ-tbw2ormMWrBfQ_o5MHGAtceBBiksVbRwScjp60-vJWtQK-p9krg/exec";
-
-let data = [];
-
-
-// ================= โหลดข้อมูล =================
-function loadData() {
-    fetch(API_URL)
-    .then(res => res.json())
-    .then(res => {
-
-        // ข้าม header แถวแรก (ถ้ามี)
-        data = res.slice(1).map(r => ({
-            month: r[1],
-            period: r[2],
-            b: Number(r[3]),
-            w: Number(r[4])
-        }));
-
-        renderTable();
-    })
-    .catch(err => console.error("โหลดข้อมูล error:", err));
-}
-
-
-// ================= แสดงผล =================
-function renderTable() {
-    const body = document.getElementById("lotteryTableBody");
-    body.innerHTML = "";
-
-    let tBuy = 0, tWin = 0;
-
-    data.forEach(item => {
-        tBuy += item.b;
-        tWin += item.w;
-
-        body.innerHTML += `
-        <tr>
-            <td>${item.month}</td>
-            <td>${item.period}</td>
-            <td>${item.b}</td>
-            <td>${item.w}</td>
-        </tr>
-        `;
-    });
-
-    document.getElementById("totalBuy").innerText = tBuy;
-    document.getElementById("totalWin").innerText = tWin;
-    document.getElementById("totalNet").innerText = tWin - tBuy;
-}
-
-
-// ================= เพิ่มข้อมูล =================
-function addEntry() {
-
-    const month = document.getElementById("monthInput").value;
-    const period = document.getElementById("periodInput").value;
-    const b = parseInt(document.getElementById("buyInput").value) || 0;
-    const w = parseInt(document.getElementById("winInput").value) || 0;
-
-    if (!month || !period) {
-        alert("กรอกข้อมูลให้ครบ");
-        return;
+  <script>
+    function save() {
+      const data = { month: document.getElementById('m').value, period: document.getElementById('p').value, b: document.getElementById('b').value, w: document.getElementById('w').value };
+      google.script.run.withSuccessHandler(load).addEntry(data);
     }
-
-    const newData = { month, period, b, w };
-
-    // 🔥 ส่งข้อมูลไป Google Sheet
-    fetch(API_URL, {
-        method: "POST",
-        mode: "no-cors",   // ⭐ แก้ CORS
-        body: JSON.stringify(newData),
-        headers: {
-            "Content-Type": "application/json"
-        }
-    });
-
-    alert("บันทึกเรียบร้อย");
-
-    clearInputs();
-
-    // รอ 1 วิแล้วโหลดใหม่
-    setTimeout(loadData, 1000);
-}
-
-
-// ================= ล้าง input =================
-function clearInputs() {
-    document.getElementById("monthInput").value = "";
-    document.getElementById("periodInput").value = "";
-    document.getElementById("buyInput").value = "";
-    document.getElementById("winInput").value = "";
-}
-
-
-// โหลดตอนเปิดหน้า
-loadData();
-
-</script>
-
+    function load() {
+      google.script.run.withSuccessHandler(res => {
+        document.getElementById('t').innerHTML = res.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join('');
+      }).getData();
+    }
+    load();
+  </script>
 </body>
 </html>
