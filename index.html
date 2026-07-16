@@ -2,63 +2,100 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>บันทึกซื้อหวย</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 p-4">
     <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-6">
-        <h1 class="text-2xl font-bold mb-4">บันทึกซื้อหวย</h1>
-        
-        <table class="w-full border-collapse mb-6">
-            <thead><tr class="border-b"><th class="py-2">เดือน</th><th>งวด</th><th>ซื้อ</th><th>ถูก</th></tr></thead>
-            <tbody id="lotteryTableBody"></tbody>
-        </table>
+        <h1 class="text-2xl font-bold mb-6 text-indigo-700">บันทึกซื้อหวย</h1>
 
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+        <!-- ฟอร์มบันทึก -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-6">
             <input type="text" id="m" placeholder="เดือน" class="border p-2 rounded">
             <input type="text" id="p" placeholder="งวด" class="border p-2 rounded">
-            <input type="number" id="b" placeholder="ซื้อ" class="border p-2 rounded">
-            <input type="number" id="w" placeholder="ถูก" class="border p-2 rounded">
-            <button onclick="saveData()" class="bg-indigo-600 text-white p-2 rounded col-span-2 md:col-span-4">บันทึกข้อมูล</button>
+            <input type="number" id="b" placeholder="ยอดซื้อ" class="border p-2 rounded">
+            <input type="number" id="w" placeholder="ยอดถูก" class="border p-2 rounded">
+            <button onclick="saveData()" id="saveBtn" class="bg-indigo-600 text-white p-2 rounded col-span-2 md:col-span-4 hover:bg-indigo-700">บันทึกข้อมูล</button>
         </div>
+
+        <!-- ตารางแสดงข้อมูล -->
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="text-gray-600 border-b">
+                    <th class="py-2">เดือน</th>
+                    <th class="py-2">งวด</th>
+                    <th class="py-2">ซื้อ</th>
+                    <th class="py-2">ถูก</th>
+                </tr>
+            </thead>
+            <tbody id="lotteryTableBody">
+                <tr><td colspan="4" class="text-center py-4">กำลังโหลดข้อมูล...</td></tr>
+            </tbody>
+        </table>
     </div>
 
     <script>
-        const SCRIPT_URL = https://script.google.com/macros/s/AKfycbzgzyoiM_bKZrdAK_mEGvUAvWQbXexcys3ZuL0kg8QwmFpG6vAYGkr0US3h1UDWLUx4/exec;
+        // ใส่ URL Web App ของคุณที่นี่
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzgzyoiM_bKZrdAK_mEGvUAvWQbXexcys3ZuL0kg8QwmFpG6vAYGkr0US3h1UDWLUx4/exec";
 
         // ฟังก์ชันดึงข้อมูลมาแสดง
         async function loadData() {
-            const res = await fetch(SCRIPT_URL);
-            const data = await res.json();
-            const body = document.getElementById('lotteryTableBody');
-            body.innerHTML = data.map(item => `
-                <tr class="border-b text-center">
-                    <td class="py-2">${item.month}</td>
-                    <td>${item.period}</td>
-                    <td>${item.b}</td>
-                    <td class="text-green-600">${item.w}</td>
-                </tr>
-            `).join('');
+            try {
+                const res = await fetch(SCRIPT_URL);
+                const data = await res.json();
+                const body = document.getElementById('lotteryTableBody');
+                
+                if (data.length === 0) {
+                    body.innerHTML = '<tr><td colspan="4" class="text-center py-4">ยังไม่มีรายการ</td></tr>';
+                    return;
+                }
+
+                body.innerHTML = data.map(item => `
+                    <tr class="border-b">
+                        <td class="py-2">${item.month || ''}</td>
+                        <td class="py-2">${item.period || ''}</td>
+                        <td class="py-2">${item.b || 0}</td>
+                        <td class="py-2 text-green-600">${item.w || 0}</td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error(err);
+                document.getElementById('lotteryTableBody').innerHTML = '<tr><td colspan="4" class="text-center py-4 text-red-500">เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>';
+            }
         }
 
         // ฟังก์ชันบันทึกข้อมูล
         async function saveData() {
+            const btn = document.getElementById('saveBtn');
             const payload = {
                 month: document.getElementById('m').value,
                 period: document.getElementById('p').value,
-                b: parseInt(document.getElementById('b').value),
-                w: parseInt(document.getElementById('w').value)
+                b: document.getElementById('b').value,
+                w: document.getElementById('w').value
             };
+
+            btn.innerText = "กำลังบันทึก...";
+            btn.disabled = true;
 
             await fetch(SCRIPT_URL, {
                 method: "POST",
                 body: JSON.stringify(payload)
             });
-            alert("บันทึกแล้ว!");
-            loadData();
+
+            btn.innerText = "บันทึกข้อมูล";
+            btn.disabled = false;
+            
+            // ล้างค่าในช่องกรอก
+            document.getElementById('m').value = '';
+            document.getElementById('p').value = '';
+            document.getElementById('b').value = '';
+            document.getElementById('w').value = '';
+            
+            loadData(); // โหลดใหม่เพื่อแสดงรายการล่าสุด
         }
 
-        loadData();
+        loadData(); // เรียกใช้งานเมื่อโหลดหน้าเว็บ
     </script>
 </body>
 </html>
